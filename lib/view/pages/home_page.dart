@@ -7,7 +7,6 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<HomeProvider>(context);
     return Scaffold(
       appBar: AppBar(
         title: Image.asset("assets/Logo 2.png"),
@@ -36,13 +35,27 @@ class MyHomePage extends StatelessWidget {
         ],
       ),
       body: FutureBuilder(
-        future: provider.fetchData(),
+        future: Provider.of<HomeProvider>(context, listen: false).fetchData(),
         builder: (context, snapshot) {
-          final data = snapshot.data;
-
-          return ListView(
-            children: [],
-          );
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (snapshot.hasData) {
+            final productData = snapshot.data as List<Map<String, dynamic>>;
+            return ListView.builder(
+              itemCount: productData.length,
+              itemBuilder: (context, index) {
+                final product = productData[index];
+                return ListTile(
+                  title: Text(product['name']),
+                  subtitle: Text(product['price'].toString()),
+                );
+              },
+            );
+          } else {
+            return Center(child: Text('No data available.'));
+          }
         },
       ),
       floatingActionButton: FloatingActionButton(

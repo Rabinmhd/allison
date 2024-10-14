@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_machine_test_alisons/model/product_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class HomeProvider with ChangeNotifier {
-  Map<String, dynamic>? data;
+class HomeProvider extends ChangeNotifier {
+  ProductModel? productModel;
   bool isLoading = false;
 
   Future<void> fetchData() async {
@@ -18,7 +19,7 @@ class HomeProvider with ChangeNotifier {
       }
     } catch (error) {
       print("Error fetching data: $error");
-      data = null;
+      productModel = null;
     } finally {
       _setLoading(false);
     }
@@ -27,27 +28,32 @@ class HomeProvider with ChangeNotifier {
   Future<void> _fetchHomeData(String id, String token) async {
     final url =
         'https://swan.alisonsnewdemo.online/api/home?id=$id&token=$token';
-    final response = await http.get(Uri.parse(url));
+    final response = await http.post(Uri.parse(url));
 
     if (response.statusCode == 200) {
-      data = json.decode(response.body);
-      print(data);
+      final data = json.decode(response.body);
+      productModel = ProductModel.fromJson(data);
+      notifyListeners();
     } else {
       print("Failed to load home data.");
-      data = null;
+      productModel = null;
     }
-    notifyListeners();
   }
 
   Future<Map<String, dynamic>?> _getUserData() async {
-    final response = await http.get(
-      Uri.parse("https://swan.alisonsnewdemo.online/api/guest-login/en"),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse("https://swan.alisonsnewdemo.online/api/guest-login/en"),
+      );
 
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      print("Error fetching user data.");
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        print("Error fetching user data.");
+        return null;
+      }
+    } catch (e) {
+      print("Error: $e");
       return null;
     }
   }
