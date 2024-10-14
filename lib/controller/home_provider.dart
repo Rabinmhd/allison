@@ -4,43 +4,47 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class HomeProvider extends ChangeNotifier {
-  ProductModel? productModel;
   bool isLoading = false;
 
-  Future<void> fetchData() async {
-    _setLoading(true);
+  Future<ProductModel?> fetchData() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setLoading(true);
+    });
 
     try {
-      final userData = await _getUserData();
+      final userData = await _getDataId();
       if (userData != null) {
         final id = userData['customerdata']['id'] ?? "";
         final token = userData['customerdata']['token'] ?? "";
-        await _fetchHomeData(id, token);
+        return await _fetchHomeData(id, token);
       }
     } catch (error) {
       print("Error fetching data: $error");
-      productModel = null;
+      return null;
     } finally {
-      _setLoading(false);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _setLoading(false);
+      });
     }
+    return null;
   }
 
-  Future<void> _fetchHomeData(String id, String token) async {
+  Future<ProductModel?> _fetchHomeData(String id, String token) async {
     final url =
         'https://swan.alisonsnewdemo.online/api/home?id=$id&token=$token';
     final response = await http.post(Uri.parse(url));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      productModel = ProductModel.fromJson(data);
-      notifyListeners();
+      //print(data);
+      return ProductModel.fromJson(data);
     } else {
       print("Failed to load home data.");
-      productModel = null;
+      return null;
     }
   }
 
-  Future<Map<String, dynamic>?> _getUserData() async {
+  Future<Map<String, dynamic>?> _getDataId() async {
     try {
       final response = await http.post(
         Uri.parse("https://swan.alisonsnewdemo.online/api/guest-login/en"),

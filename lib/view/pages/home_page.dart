@@ -11,27 +11,12 @@ class MyHomePage extends StatelessWidget {
       appBar: AppBar(
         title: Image.asset("assets/Logo 2.png"),
         actions: const [
-          Icon(
-            Icons.search,
-            size: 35,
-          ),
-          SizedBox(
-            width: 10,
-          ),
-          Icon(
-            Icons.favorite_border,
-            size: 35,
-          ),
-          SizedBox(
-            width: 10,
-          ),
-          Icon(
-            Icons.badge_outlined,
-            size: 35,
-          ),
-          SizedBox(
-            width: 10,
-          ),
+          Icon(Icons.search, size: 35),
+          SizedBox(width: 10),
+          Icon(Icons.favorite_border, size: 35),
+          SizedBox(width: 10),
+          Icon(Icons.badge_outlined, size: 35),
+          SizedBox(width: 10),
         ],
       ),
       body: FutureBuilder(
@@ -42,14 +27,26 @@ class MyHomePage extends StatelessWidget {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
-            final productData = snapshot.data as List<Map<String, dynamic>>;
+            final productData = snapshot.data;
+            print(productData); // Assuming this is a ProductModel
+
             return ListView.builder(
-              itemCount: productData.length,
+              scrollDirection: Axis.horizontal,
+              itemCount: productData?.banner1.length ?? 0,
               itemBuilder: (context, index) {
-                final product = productData[index];
-                return ListTile(
-                  title: Text(product['name']),
-                  subtitle: Text(product['price'].toString()),
+                final banner = productData!.banner1[index];
+                return Card(
+                  margin: EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      Image.network(banner.image,
+                          width: 100,
+                          height: 100), // Adjust dimensions as needed
+                      Text(banner.title,
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(banner.subTitle),
+                    ],
+                  ),
                 );
               },
             );
